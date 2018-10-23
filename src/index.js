@@ -48,41 +48,39 @@ let index = {
     url: START_URLS_INDEX
 };
 
-// let url = 'https://vec03.maps.yandex.net/tiles?l=map&x=10005&y=5008&z=14&scale=1&lang=ru_RU';
-// let url = 'https://vec03.maps.yandex.net/tiles?l=map&x=10005&y=5009&z=14&scale=1&lang=ru_RU';
-//
-//
-// downloadImage(url, 'D:/projects/mapTilesLoader', 'code.jpg').then(successCallback, failureCallback);
-// downloadImage(url1, 'D:/projects/mapTilesLoader', 'code1.jpg').then(successCallback, failureCallback);
-
-
-// for (let tile in tiles){
-//     let fpt = Path.resolve(image.path, 'images', `${tile.x}-${tile.y}.${image.ext}`);
-//     for (let url in urls){
-//         const turl = `${url}?l=${map.l}&v=${map.v}&x=${tile.x}&y=${tile.y}&z=${map.z}&scale=${map.scale}&lang=${map.lang}`;
-//         downloadImage(turl, fpt);
-//     }
-// }
-
+let loadedTiles = 0;
 
 function start(){
+    
+    log('--- START');
+    
+    loadedTiles = 0;
+    
     resetTile();
     resetUrl();
     
     next();
 }
 
+function stop() {
+    console.log('*** COMPLETE');
+    log(`   LOADED TILES ${loadedTiles} from ${tiles.length}`);
+}
+
 function successCallback(result) {
-    console.log("It succeeded with " + result);
+    console.log(`!!! SUCCEEDED  tile:${index.tile} url:${index.url}`);
+    loadedTiles++;
     resetUrl();
     if( nextTile()){
         next();
     }else{
-        console.log('*** COMPLETE');
+        stop();
     }
 }
 
 function failureCallback(error) {
+    
+    console.log(`??? FAILURE  tile:${index.tile} url:${index.url}`);
     
     if( nextUrl() ){
         next();
@@ -90,37 +88,46 @@ function failureCallback(error) {
         if( nextTile()){
             next();
         }else{
-            console.log('*** COMPLETE');
+            stop();
         }
     }
 }
 
 function next() {
+    log('>>> NEXT');
     const turl = getCurrentURL();
     const fpt = getCurrentPATH();
-    downloadImage(turl, fpt);
+    downloadImage(turl, fpt)
+    .then(
+        successCallback,
+        failureCallback
+    );
 }
 
 function resetUrl(){
     index.url = START_URLS_INDEX;
     current.url = urls[index.url];
+    log('=== RESET URL ' + index.url);
 }
 
 function resetTile(){
     index.tile = START_TILES_INDEX;
     current.tile = tiles[index.tile];
+    log('=== RESET TILE ' + index.tile);
 }
 
 function nextUrl(){
     let out = true;
     
     if (++index.url >= urls.length){
-        console.log(`Stop tryes URLS x:${current.tile.x} y:${current.tile.y}`);
+        log('### Stop tryes URLS');
         index.url = START_URLS_INDEX;
         out = false;
     }
     
     current.url = urls[index.url];
+    
+    log('=== NEXT URL ' + index.url);
     
     return out;
 }
@@ -129,11 +136,13 @@ function nextTile() {
     let out = true;
     
     if ( ++index.tile >= tiles.length){
-        console.log('Stop tryes TILES');
+        log('### Stop tryes TILES');
         out = false;
     }else{
         current.tile = tiles[index.tile];
     }
+    
+    log('=== NEXT TILE');
     
     return out;
 }
@@ -148,6 +157,12 @@ function getCurrentPATH(){
     return out;
 }
 
+function log(m){
+    console.log(`${m} - tile:${index.tile} url:${index.url}`);
+}
 
+function generateTilesCOllection(begin, end){
+
+}
 
 start();
