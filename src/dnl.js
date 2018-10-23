@@ -22,8 +22,8 @@ async function downloadImage (url, file) {
             resolve()
         });
         
-        response.data.on('error', () => {
-            reject()
+        response.data.on('error', (e) => {
+            reject(e)
         })
     })
     
