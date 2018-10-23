@@ -1,0 +1,22 @@
+{
+  "name": "maptilesloader",
+  "version": "1.0.0",
+  "description": "Load tiles of map",
+  "main": "index.js",
+  "scripts": {
+    "test": "node ./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stokaboka/mtl.git"
+  },
+  "keywords": [
+    "none"
+  ],
+  "author": "Igor Khorev igorhorev@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stokaboka/mtl/issues"
+  },
+  "homepage": "https://github.com/stokaboka/mtl#readme"
+}
