@@ -31,8 +31,8 @@ let tiles = [
 ];
 
 let grid = {
-    begin: { x: 10005, y: 5008 },
-    end:   { x: 10005, y: 5009 }
+    begin: { x: 10005, y: 5008, vec: '' },
+    end:   { x: 10005, y: 5009, vec: '' }
 };
 
 let urls = [
@@ -93,12 +93,16 @@ function start(){
 function stop() {
      log(1, '*** COMPLETE');
      log(1, `   LOADED TILES ${loadedTiles} from ${tiles.length}`);
+     
+     console.log(tiles);
 }
 
 function successCallback() {
     log(2, `!!! SUCCEEDED  tile:${index.tile} url:${index.url}`);
-    loadedTiles++;
+    
+    fixTile();
     resetUrl();
+    
     if( nextTile()){
         next();
     }else{
@@ -130,6 +134,11 @@ function next() {
         successCallback,
         failureCallback
     );
+}
+
+function fixTile() {
+    loadedTiles++;
+    tiles[index.tile].vec = urls[index.url];
 }
 
 function resetUrl(){
@@ -196,21 +205,21 @@ function getYandexTilesURL(vec){
 }
 
 function generateTilesCollection(grid){
-    let size = (grid.end.x - grid.begin.x) * (grid.end.y - grid.begin.y);
+    
+    // let size = (grid.end.x - grid.begin.x) * (grid.end.y - grid.begin.y);
+    let size = grid.size.x * grid.size.y;
     let idx = 0;
     tiles = new Array(size);
     
-    for(let x = grid.begin.x; x < grid.end.x; x++){
-        for(let y = grid.begin.y; y < grid.end.y; y++){
+    for(let _x = 0; _x < grid.size.x; _x++){
+        for(let _y = 0; _y < grid.size.y; _y++){
             
-            tiles[idx++] = { x: x, y: y };
+            tiles[idx++] = { x: grid.begin.x + _x, y: grid.begin.y + _y, vec: '' };
             
         }
     }
     
 }
-
-// start();
 
 module.exports.init = init;
 module.exports.start = start;

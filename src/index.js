@@ -9,8 +9,8 @@ const yt = require('./ytiles');
 const cfg = {
     logging: { level: 3 },
     grid: {
-        begin: { x: 10005, y: 5008 },
-        end:   { x: 10015, y: 5018 }
+        begin: { x: 10001, y: 5001 },
+        size:  { x: 3, y: 3 }
     }
 };
 
