@@ -57,6 +57,7 @@ class TileLoader {
     
         this.init(cfg)
         
+        return this;
     }
 
     init(cfg){
@@ -78,7 +79,8 @@ class TileLoader {
         }
         
         this.generateTilesCollection( this.grid );
-        
+    
+        return this;
     }
 
     start(){
@@ -91,6 +93,8 @@ class TileLoader {
         this.resetUrl();
     
         this.next();
+    
+        return this;
     }
 
     stop() {
@@ -103,42 +107,41 @@ class TileLoader {
 }
 
     successCallback() {
-        const self = this;
+
+        this.log(2, `!!! SUCCEEDED  tile:${this.index.tile} url:${this.index.url}`);
     
-        self.log(2, `!!! SUCCEEDED  tile:${self.index.tile} url:${self.index.url}`);
+        this.fixTile();
+        this.resetUrl();
     
-        self.fixTile();
-        self.resetUrl();
-    
-        if( self.nextTile()){
-            self.next();
-        }else{
-            self.stop();
-        }
+        this.nextOrStop();
     }
 
     failureCallback(error) {
-        const self = this;
     
-        self.log(2, `??? FAILURE ${error}  -  tile:${self.index.tile} url:${self.index.url}`);
+        this.log(2, `??? FAILURE ${error}  -  tile:${this.index.tile} url:${this.index.url}`);
     
-        if( self.nextUrl() ){
-            self.next();
+        if( this.nextUrl() ){
+            this.next();
         }else{
-            if( self.nextTile()){
-                self.next();
-            }else{
-                self.stop();
-            }
+            this.nextOrStop();
         }
     }
 
+    nextOrStop() {
+        if( this.nextTile()){
+            this.next();
+        }else{
+            this.stop();
+        }
+    }
+    
     async next() {
-        // const self = this;
-        
+
         this.log(3, '>>> NEXT');
+
         const turl = this.getCurrentURL();
         const fpt = this.getCurrentPATH();
+
         await this.downloadImage(turl, fpt)
         .then(
             () => { this.successCallback() },

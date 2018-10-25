@@ -5,6 +5,7 @@
 'use strict';
 
 const TilesLoader = require('./TilesLoader');
+const TilesCalculator = require('./TilesCalculator');
 
 const cfg = {
     logging: { level: 3 },
@@ -14,6 +15,14 @@ const cfg = {
     }
 };
 
-const tilesLoader = new TilesLoader(cfg);
-// yt.init(cfg);
-tilesLoader.start();
+const tilesCalculator = new TilesCalculator();
+
+
+    let mPoint = tilesCalculator.ll2m({lon: 59.57, lat: 9.770602}, 10);
+    console.log(mPoint);
+
+    let llPoint = tilesCalculator.m2ll( { x: 5299203.224250865, y: 1085722.2185366796 } );
+    console.log(llPoint);
+    
+// const tilesLoader = new TilesLoader(cfg).start();
+// tilesLoader.start();
