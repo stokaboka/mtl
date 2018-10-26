@@ -142,10 +142,10 @@ class TileLoader {
         const turl = this.getCurrentURL();
         const fpt = this.getCurrentPATH();
 
-        await this.downloadImage(turl, fpt)
+        await this.downloadImage(turl, fpt, `${this.current.tile.x}-${this.current.tile.y}`)
         .then(
-            () => { this.successCallback() },
-            (error) => { this.failureCallback(error) }
+            (response) => { this.successCallback(response) },
+            (error, response) => { this.failureCallback(error, response) }
         );
     }
 
@@ -236,7 +236,9 @@ class TileLoader {
     
     }
     
-    async downloadImage (url, file) {
+    async downloadImage (url, file, idx) {
+        
+        console.log('downloadImage', idx, file);
         
         const response = await axios({
             method: 'GET',
