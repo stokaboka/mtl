@@ -5,24 +5,35 @@
 'use strict';
 
 const TilesLoader = require('./TilesLoader');
-const TilesCalculator = require('./TilesCalculator');
-
-const cfg = {
-    logging: { level: 3 },
-    grid: {
-        begin: { x: 10001, y: 5001 },
-        size:  { x: 3, y: 3 }
-    }
-};
+const { GeoPoint, DecartPoint, PixelPoint } = require('./Mercator');
+const { TilesCalculator, MappingArea } = require('./TilesCalculator');
 
 const tilesCalculator = new TilesCalculator();
 
+tilesCalculator.zoom = 14;
+tilesCalculator.displayParams();
 
-    let mPoint = tilesCalculator.ll2m({lon: 59.57, lat: 9.770602}, 10);
-    console.log(mPoint);
+// гаврилов-Ям
+let geoPointTest = new GeoPoint( 39.849086, 57.303309 );
 
-    let llPoint = tilesCalculator.m2ll( { x: 5299203.224250865, y: 1085722.2185366796 } );
-    console.log(llPoint);
-    
-// const tilesLoader = new TilesLoader(cfg).start();
-// tilesLoader.start();
+let meterPoint = tilesCalculator.geoToMeter( geoPointTest );
+console.log(`GEO->METER ${geoPointTest} -> ${meterPoint}`);
+
+let geoPoint = tilesCalculator.meterToGeo( meterPoint );
+console.log(`METER->GEO ${meterPoint} ->  ${geoPoint}`);
+
+let pixelPoint = tilesCalculator.meterToPixels( meterPoint );
+console.log(`METER->PIXEL ${meterPoint} -> ${pixelPoint}`);
+
+let tilePoint = tilesCalculator.pixelToTile( pixelPoint );
+console.log(`PIXEL->TILE ${pixelPoint} -> ${tilePoint}`);
+
+let mappingArea = new MappingArea();
+
+const cfg = {
+    logging: { level: 3 },
+    grid: mappingArea.getGrid(tilePoint)
+};
+
+const tilesLoader = new TilesLoader(cfg).start();
+tilesLoader.start();

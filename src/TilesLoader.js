@@ -106,7 +106,7 @@ class TileLoader {
         }
 }
 
-    successCallback() {
+    successCallback(response) {
 
         this.log(2, `!!! SUCCEEDED  tile:${this.index.tile} url:${this.index.url}`);
     
@@ -116,7 +116,7 @@ class TileLoader {
         this.nextOrStop();
     }
 
-    failureCallback(error) {
+    failureCallback(error, response) {
     
         this.log(2, `??? FAILURE ${error}  -  tile:${this.index.tile} url:${this.index.url}`);
     
@@ -151,7 +151,9 @@ class TileLoader {
 
     fixTile() {
         this.loadedTiles++;
-        this.tiles[this.index.tile].vec = this.urls[this.index.url];
+        if( 0 <= this.index.tile && this.index.tile < this.tiles.length) {
+            this.tiles[this.index.tile].vec = this.urls[this.index.url];
+        }
     }
 
     resetUrl(){
@@ -184,15 +186,15 @@ class TileLoader {
 
     nextTile() {
         let out = true;
-    
+        
+        this.log(3, '=== NEXT TILE');
+        
         if ( ++this.index.tile >= this.tiles.length){
             this.log(2, '### Stop tryes TILES');
                 out = false;
             }else{
                 this.current.tile = this.tiles[this.index.tile];
         }
-    
-        this.log(3, '=== NEXT TILE');
     
         return out;
     }
@@ -245,12 +247,12 @@ class TileLoader {
         response.data.pipe(Fs.createWriteStream(file));
         
         return new Promise(function(resolve, reject) {
-            response.data.on('end', () => {
-                resolve()
+            response.data.on('end', (response) => {
+                resolve(response)
             });
             
-            response.data.on('error', (e) => {
-                reject(e)
+            response.data.on('error', (e, response) => {
+                reject(e, response)
             })
         })
         

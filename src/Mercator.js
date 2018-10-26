@@ -36,10 +36,14 @@ function lat2y(lat) { return Math.log(Math.tan((lat / 90 + 1) * PI_4 )) * RAD2DE
 function lon2y(lon) { return lon; }
  */
 
-class LonLatPoint {
+class GeoPoint {
     constructor(lon, lat){
         this.lon = lon;
         this.lat = lat;
+    }
+    
+    toString(){
+        return `lon:${this.lon} lat:${this.lat}`;
     }
 }
 
@@ -47,6 +51,19 @@ class DecartPoint {
     constructor(x, y){
         this.x = x;
         this.y = y;
+    }
+    toString(){
+        return `x:${this.x} y:${this.y}`;
+    }
+}
+
+class PixelPoint {
+    constructor(x, y){
+        this.x = x;
+        this.y = y;
+    }
+    toString(){
+        return `x:${this.x} y:${this.y}`;
     }
 }
 
@@ -118,7 +135,7 @@ class Mercator {
         let e = Math.sqrt(1.0 - (temp * temp));
         let lat = this.rad2deg(this.pj_phi2( Math.exp( 0 - ( y / this.r_major ) ), e));
         
-        return  new LonLatPoint( lon, lat );
+        return  new GeoPoint( lon, lat );
     }
     
     pj_phi2 (ts, e)
@@ -148,4 +165,9 @@ class Mercator {
 }
 
 
-module.exports = Mercator;
+// module.exports.Mercator = Mercator;
+// module.exports.GeoPoint = GeoPoint;
+// module.exports.DecartPoint = DecartPoint;
+// module.exports.PixelPoint = PixelPoint;
+
+module.exports = { Mercator, GeoPoint, DecartPoint, PixelPoint };
