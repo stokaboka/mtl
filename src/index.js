@@ -31,10 +31,10 @@ console.log(`PIXEL->TILE ${pixelPoint} -> ${tilePoint}`);
 let mappingArea = new MappingArea();
 
 const cfg = {
-    logging: { level: 1 },
+    logging: { level: 2 },
     map: {z: tilesCalculator.zoom},
     grid: mappingArea.getGrid(tilePoint)
 };
 
-const tilesLoader = new TilesLoader(cfg).start();
+const tilesLoader = new TilesLoader(cfg);
 tilesLoader.start();

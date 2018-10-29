@@ -3,8 +3,8 @@
  */
 
 // const downloadImage = require('./dnl');
-const Path = require('path');
-const Fs = require('fs');
+const path = require('path');
+const fs = require('fs');
 const axios = require('axios');
 
 class TileLoader {
@@ -14,6 +14,10 @@ class TileLoader {
         this.START_URLS_INDEX = 0;
         this.START_TILES_INDEX = 0;
     
+        this.ready = false;
+        this.started = false;
+        this.completed = false;
+        
         this.logging = {
             level: 3
         };
@@ -27,7 +31,7 @@ class TileLoader {
         };
     
         this.images = {
-            path: 'D:/projects/mapTilesLoader',
+            path: 'D:/projects/mapTilesLoader/images',
             ext: 'png'
         };
     
@@ -55,45 +59,104 @@ class TileLoader {
     
         this.loadedTiles = 0;
     
-        this.init(cfg)
+        this.init(cfg);
         
         return this;
     }
 
     init(cfg){
-        
-        if(cfg.map) {
-            this.map = Object.assign({}, this.map, cfg.map);
-        }
-        
-        if(cfg.images) {
-            this.images = Object.assign({}, this.images, cfg.images)
-        }
-        
-        if(cfg.grid) {
-            this.grid = Object.assign({}, this.grid, cfg.grid)
-        }
-        
-        if(cfg.logging) {
-            this.logging = Object.assign({}, this.logging, cfg.logging)
-        }
-        
-        this.generateTilesCollection( this.grid );
     
+        this.started = false;
+        this.completed = false;
+        
+        this.initConfig(cfg);
+        this.initDirectory();
+        this.initTilesCollection( this.grid );
+        
         return this;
     }
 
+    initConfig(cfg){
+        if(cfg.map) {
+            this.map = Object.assign({}, this.map, cfg.map);
+        }
+    
+        if(cfg.images) {
+            this.images = Object.assign({}, this.images, cfg.images)
+        }
+    
+        if(cfg.grid) {
+            this.grid = Object.assign({}, this.grid, cfg.grid)
+        }
+    
+        if(cfg.logging) {
+            this.logging = Object.assign({}, this.logging, cfg.logging)
+        }
+    }
+    
+    initDirectory() {
+        try {
+            if(this.checkTilesPath(this.images.path, this.map.z)){
+                this.ready = true;
+            }else{
+                if(this.createTilesDirectory(this.images.path, this.map.z)){
+                    this.ready = true;
+                }
+            }
+            
+        }catch(e){
+            console.log('initDirectory error: ');
+            console.log(e);
+        }
+    }
+    
+    checkTilesPath(tilesPath, zoom){
+        const path = this.getTilesPath(tilesPath, zoom);
+        try {
+            const stat = fs.statSync(path);
+            
+            if(stat.isDirectory()){
+                return true;
+            }else{
+                throw `Path is not a directory: ${path}`;
+            }
+            
+        }catch (e) {
+            return false;
+        }
+    }
+    
+    createTilesDirectory(tilesPath, zoom){
+        const path = this.getTilesPath(tilesPath, zoom);
+        try {
+            fs.mkdirSync(path);
+            return true;
+        }catch (e) {
+            return false;
+        }
+    }
+    
     start(){
     
-        this.log(1, '--- START');
+        if( this.ready ) {
+            if (this.started) {
+                console.log('TilesLoader already started... Exited.');
+            }else{
+                this.log(1, '--- START');
     
-        this.loadedTiles = 0;
+                this.started = true;
+                this.completed = false;
+                this.loadedTiles = 0;
     
-        this.resetTile();
-        this.resetUrl();
+                this.resetTile();
+                this.resetUrl();
     
-        this.next();
-    
+                this.next();
+            }
+        }else{
+            console.log('Not ready... Exited.');
+        }
+        
         return this;
     }
 
@@ -101,6 +164,9 @@ class TileLoader {
         this.log(1, '*** COMPLETE');
         this.log(1, `   LOADED TILES ${this.loadedTiles} from ${this.tiles.length}`);
     
+        this.started = false;
+        this.completed = true;
+        
         if( this.logging.level > 0) {
             console.log(this.tiles);
         }
@@ -116,7 +182,7 @@ class TileLoader {
         this.nextOrStop();
     }
 
-    failureCallback(error, response) {
+    failureCallback(error) {
     
         this.log(2, `??? FAILURE ${error}  -  tile:${this.index.tile} url:${this.index.url}`);
     
@@ -135,17 +201,19 @@ class TileLoader {
         }
     }
     
-    async next() {
+    next() {
 
         this.log(3, '>>> NEXT');
 
         const turl = this.getCurrentURL();
-        const fpt = this.getCurrentPATH();
+        const tparams = this.getCurrentParams();
+        const fpath = this.getCurrentTileImagePath();
 
-        await this.downloadImage(turl, fpt, `${this.current.tile.x}-${this.current.tile.y}`)
+        this.downloadImage(turl, tparams, fpath, `${this.current.tile.x}-${this.current.tile.y}`)
         .then(
-            (response) => { this.successCallback(response) },
-            (error, response) => { this.failureCallback(error, response) }
+            (response) => { this.successCallback(response) }
+        ).catch(
+            (error) => { this.failureCallback(error) }
         );
     }
 
@@ -179,15 +247,15 @@ class TileLoader {
     
         this.current.url = this.getYandexTilesURL( this.urls[this.index.url] );
     
-        this.log(3, '=== NEXT URL ' + this.index.url);
+        if(out) {
+            this.log(3, '=== NEXT URL ' + this.index.url);
+        }
     
         return out;
     }
 
     nextTile() {
         let out = true;
-        
-        this.log(3, '=== NEXT TILE');
         
         if ( ++this.index.tile >= this.tiles.length){
             this.log(2, '### Stop tryes TILES');
@@ -196,16 +264,45 @@ class TileLoader {
                 this.current.tile = this.tiles[this.index.tile];
         }
     
+        if(out) {
+            this.log(3, '=== NEXT TILE');
+        }
+        
         return out;
     }
 
+    getCurrentParams(){
+        return {
+            l: this.map.l,
+            v: this.map.v,
+            x: this.current.tile.x,
+            y: this.current.tile.y,
+            z: this.map.z,
+            scale: this.map.scale,
+            lang: this.map.lang
+        }
+    }
+    
     getCurrentURL(){
-        const out = `${this.current.url}?l=${this.map.l}&v=${this.map.v}&x=${this.current.tile.x}&y=${this.current.tile.y}&z=${this.map.z}&scale=${this.map.scale}&lang=${this.map.lang}`;
+        // const out = `${this.current.url}?l=${this.map.l}&v=${this.map.v}&x=${this.current.tile.x}&y=${this.current.tile.y}&z=${this.map.z}&scale=${this.map.scale}&lang=${this.map.lang}`;
+        return this.current.url;
+    }
+    
+    getTilesPath(tilesRootPath, zoom){
+        let out = path.resolve(tilesRootPath, `${zoom}`);
         return out;
     }
-
-    getCurrentPATH(){
-        let out = Path.resolve(this.images.path, 'images', `${this.current.tile.x}-${this.current.tile.y}.${this.images.ext}`);
+    
+    getTileImageFileName(x, y){
+        return `${x}-${y}.${this.images.ext}`;
+    }
+    
+    getTileImagePath(x, y){
+        return path.resolve(this.getTilesPath(this.images.path, this.map.z), this.getTileImageFileName(x, y));
+    }
+    
+    getCurrentTileImagePath(){
+        let out = path.resolve(this.getTilesPath(this.images.path, this.map.z), this.getTileImageFileName(this.current.tile.x, this.current.tile.y) );
         return out;
     }
 
@@ -219,9 +316,8 @@ class TileLoader {
         return `https://${vec}.maps.yandex.net/tiles`;
     }
 
-    generateTilesCollection(grid){
-    
-        // let size = (grid.end.x - grid.begin.x) * (grid.end.y - grid.begin.y);
+    initTilesCollection(grid){
+        
         let size = grid.size.x * grid.size.y;
         let idx = 0;
         this.tiles = new Array(size);
@@ -236,23 +332,22 @@ class TileLoader {
     
     }
     
-    async downloadImage (url, file, idx) {
+    async downloadImage (url, params, file) {
         
-        console.log('downloadImage', idx, file);
-        
-        const response = await axios({
+        let response = await axios({
             method: 'GET',
             url: url,
+            params: params,
             responseType: 'stream'
         });
         
-        response.data.pipe(Fs.createWriteStream(file));
+        response.data.pipe(fs.createWriteStream(file));
         
         return new Promise(function(resolve, reject) {
             response.data.on('end', (response) => {
                 resolve(response)
             });
-            
+
             response.data.on('error', (e, response) => {
                 reject(e, response)
             })
@@ -263,6 +358,3 @@ class TileLoader {
 }
 
 module.exports = TileLoader;
-
-// module.exports.init = init;
-// module.exports.start = start;
