@@ -31,8 +31,16 @@ console.log(`PIXEL->TILE ${pixelPoint} -> ${tilePoint}`);
 let mappingArea = new MappingArea();
 
 const cfg = {
-    logging: { level: 2 },
-    map: {z: tilesCalculator.zoom},
+    logging: {
+        level: 2
+    },
+    images: {
+        path: 'D:/projects/mapTilesLoader/images',
+        reload: false
+    },
+    map: {
+        z: tilesCalculator.zoom
+    },
     grid: mappingArea.getGrid(tilePoint)
 };
 

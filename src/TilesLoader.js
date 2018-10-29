@@ -12,7 +12,7 @@ class TileLoader {
     constructor(cfg){
 
         this.START_URLS_INDEX = 0;
-        this.START_TILES_INDEX = 0;
+        this.START_TILES_INDEX = -1;
     
         this.ready = false;
         this.started = false;
@@ -31,8 +31,8 @@ class TileLoader {
         };
     
         this.images = {
-            path: 'D:/projects/mapTilesLoader/images',
-            ext: 'png'
+            ext: 'png',
+            reload: false
         };
     
         this.tiles = [
@@ -96,10 +96,10 @@ class TileLoader {
     
     initDirectory() {
         try {
-            if(this.checkTilesPath(this.images.path, this.map.z)){
+            if(this.checkTilesPath()){
                 this.ready = true;
             }else{
-                if(this.createTilesDirectory(this.images.path, this.map.z)){
+                if(this.createTilesDirectory()){
                     this.ready = true;
                 }
             }
@@ -110,8 +110,8 @@ class TileLoader {
         }
     }
     
-    checkTilesPath(tilesPath, zoom){
-        const path = this.getTilesPath(tilesPath, zoom);
+    checkTilesPath(){
+        const path = this.getTilesPath();
         try {
             const stat = fs.statSync(path);
             
@@ -126,8 +126,24 @@ class TileLoader {
         }
     }
     
-    createTilesDirectory(tilesPath, zoom){
-        const path = this.getTilesPath(tilesPath, zoom);
+    checkTileImage(x, y){
+        const path = this.getTileImagePath(x, y);
+        try {
+            const stat = fs.statSync(path);
+            
+            if(stat.isFile()){
+                return true;
+            }else{
+                return false;
+            }
+            
+        }catch (e) {
+            return false;
+        }
+    }
+    
+    createTilesDirectory(){
+        const path = this.getTilesPath();
         try {
             fs.mkdirSync(path);
             return true;
@@ -151,7 +167,8 @@ class TileLoader {
                 this.resetTile();
                 this.resetUrl();
     
-                this.next();
+                // this.next();
+                this.nextOrStop();
             }
         }else{
             console.log('Not ready... Exited.');
@@ -284,12 +301,11 @@ class TileLoader {
     }
     
     getCurrentURL(){
-        // const out = `${this.current.url}?l=${this.map.l}&v=${this.map.v}&x=${this.current.tile.x}&y=${this.current.tile.y}&z=${this.map.z}&scale=${this.map.scale}&lang=${this.map.lang}`;
         return this.current.url;
     }
     
-    getTilesPath(tilesRootPath, zoom){
-        let out = path.resolve(tilesRootPath, `${zoom}`);
+    getTilesPath(){
+        let out = path.resolve(this.images.path, `${this.map.z}`);
         return out;
     }
     
@@ -298,11 +314,11 @@ class TileLoader {
     }
     
     getTileImagePath(x, y){
-        return path.resolve(this.getTilesPath(this.images.path, this.map.z), this.getTileImageFileName(x, y));
+        return path.resolve(this.getTilesPath(), this.getTileImageFileName(x, y));
     }
     
     getCurrentTileImagePath(){
-        let out = path.resolve(this.getTilesPath(this.images.path, this.map.z), this.getTileImageFileName(this.current.tile.x, this.current.tile.y) );
+        let out = path.resolve(this.getTilesPath(), this.getTileImageFileName(this.current.tile.x, this.current.tile.y) );
         return out;
     }
 
@@ -320,12 +336,23 @@ class TileLoader {
         
         let size = grid.size.x * grid.size.y;
         let idx = 0;
-        this.tiles = new Array(size);
+        // this.tiles = new Array(size);
+        this.tiles = [];
     
         for(let _x = 0; _x < grid.size.x; _x++){
             for(let _y = 0; _y < grid.size.y; _y++){
     
-                this.tiles[idx++] = { x: grid.begin.x + _x, y: grid.begin.y + _y, vec: '' };
+                const tileInfo = {x: grid.begin.x + _x, y: grid.begin.y + _y, vec: ''};
+                if(this.checkTileImage(tileInfo.x, tileInfo.y)){
+                    // tile image exist
+                    if(this.images.reload){
+                        // this.tiles[idx++] = tileInfo;
+                        this.tiles.push(tileInfo);
+                    }
+                }else {
+                    // this.tiles[idx++] = tileInfo;
+                    this.tiles.push(tileInfo);
+                }
             
             }
         }
