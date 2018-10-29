@@ -43,6 +43,8 @@ class TilesCalculator {
         // пикселей на метр
         this.pixelsByMeter = 0;
         
+        this.pipeList = [];
+        
         this.init();
     }
     
@@ -134,14 +136,23 @@ class TilesCalculator {
         )
     }
     
+    pipe(pList){
+        this.pipeList = pList;
+        return this;
+    }
     
-    
-    pipe(pValue, pFunctions){
-        let out = pValue;
-        for (let func in pFunctions){
-            out = func(out);
+    calc(value){
+        if(this.pipeList){
+            let out = value;
+            for (let i=0;  i < this.pipeList.length; i++){
+                let func = this.pipeList[i];
+                out = func(out);
+            }
+            this.pipeList = [];
+            return out;
+        }else{
+            return value;
         }
-        return out;
     }
 }
 

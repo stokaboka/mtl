@@ -2,35 +2,100 @@
  * Copyright (c) 2018. Igor Khorev, Orangem.me, igorhorev@gmail.com
  */
 
+const TilesCalculator = require('./TilesCalculator');
+
 class MappingArea {
     constructor(pAreaSize){
-        this.centerTilePoint = null;
-        this._areaSize = 6;
+        
+        this.areaSize = 6;
         if(pAreaSize){
-            this._areaSize = pAreaSize;
+            this.areaSize = pAreaSize;
         }
+        
         this.halfAreaSize = Math.ceil(this._areaSize / 2);
         
         this.tilesCalculator = new TilesCalculator();
+        
+        this.point = null;
+        this.typePoint = null;
     }
     
-    get areaSize(){
-        return this._areaSize;
-    }
-    set areaSize(pAreaSize){
-        this._areaSize = pAreaSize;
+    setAreaSize(value){
+        this.areaSize = value;
         this.halfAreaSize = Math.ceil(this._areaSize / 2);
+        return this;
     }
     
-    setGeoPoint(geoPoint){
-    
+    getZoom(){
+        return this.tilesCalculator.zoom;
+    }
+    setZoom(value){
+        this.tilesCalculator.zoom = this.value;
+        return this;
     }
     
-    getGrid(pCenterTilePoint){
-        this.centerTilePoint = pCenterTilePoint;
+    setGeoPoint(point){
+        this.point = point;
+        this.typePoint = 'GEO';
+        return this;
+    }
+    
+    setMeterPoint(point){
+        this.point = point;
+        this.typePoint = 'METER';
+        return this;
+    }
+    
+    setPixelPoint(point){
+        this.point = point;
+        this.typePoint = 'PIXEL';
+        return this;
+    }
+    
+    setTilePoint(point){
+        this.point = point;
+        this.typePoint = 'TILE';
+        return this;
+    }
+    
+    getGrid(){
+        let tilePoint = null;
+        switch (this.typePoint) {
+            case 'GEO':
+                tilePoint = this.tilesCalculator
+                .pipe([
+                    this.tilesCalculator.geoToMeter,
+                    this.tilesCalculator.meterToPixels,
+                    this.tilesCalculator.pixelToTile
+                ])
+                .calc(this.point);
+                break;
+            case 'METER':
+                tilePoint = this.tilesCalculator
+                .pipe([
+                    this.tilesCalculator.meterToPixels,
+                    this.tilesCalculator.pixelToTile
+                ])
+                .calc(this.point);
+                break;
+            case 'PIXEL':
+                tilePoint = this.tilesCalculator
+                .pipe([
+                    this.tilesCalculator.pixelToTile
+                ])
+                .calc(this.point);
+                break;
+            case 'TILE':
+                tilePoint = this.point;
+                break;
+            default:
+                return null;
+        }
         return {
-            begin: { x: this.centerTilePoint.x - this.halfAreaSize, y: this.centerTilePoint.y - this.halfAreaSize },
+            begin: { x: tilePoint.x - this.halfAreaSize, y: tilePoint.y - this.halfAreaSize },
             size:  { x: this.areaSize, y: this.areaSize }
         }
     }
 }
+
+module.exports = MappingArea;
