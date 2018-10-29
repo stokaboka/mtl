@@ -11,33 +11,6 @@
 
 const { Mercator, GeoPoint, DecartPoint, PixelPoint } = require('./Mercator');
 
-class MappingArea {
-    constructor(pAreaSize){
-        this.centerTilePoint = null;
-        this._areaSize = 6;
-        if(pAreaSize){
-            this._areaSize = pAreaSize;
-        }
-        this.halfAreaSize = Math.ceil(this._areaSize / 2);
-    }
-    
-    get areaSize(){
-        return this._areaSize;
-    }
-    set areaSize(pAreaSize){
-        this._areaSize = pAreaSize;
-        this.halfAreaSize = Math.ceil(this._areaSize / 2);
-    }
-    
-    getGrid(pCenterTilePoint){
-        this.centerTilePoint = pCenterTilePoint;
-        return {
-            begin: { x: this.centerTilePoint.x - this.halfAreaSize, y: this.centerTilePoint.y - this.halfAreaSize },
-            size:  { x: this.areaSize, y: this.areaSize }
-        }
-    }
-}
-
 class TilesCalculator {
     constructor(pTileSize){
         
@@ -109,10 +82,9 @@ class TilesCalculator {
     displayParams(){
         console.log('--- TilesCalculator parameters ---');
         console.log(`  numTilesByZoom: ${this.numTotalTilesByZoom} / ${this.numTilesByZoom}`);
-        // console.log(`worldSizeInPixels: ${this.worldSizeInPixels} ?= ${this.__worldSizeInPixels__}`);
         console.log(`worldSizeInPixels: ${this.worldSizeInPixels}`);
         console.log(`    pixelsByMeter: ${this.pixelsByMeter}`);
-        console.log('---------------------------------');
+        console.log('==================================');
         console.log();
         return this;
     }
@@ -161,6 +133,16 @@ class TilesCalculator {
             Math.floor(pixelPoint.y / this.tileSize),
         )
     }
+    
+    
+    
+    pipe(pValue, pFunctions){
+        let out = pValue;
+        for (let func in pFunctions){
+            out = func(out);
+        }
+        return out;
+    }
 }
 
-module.exports = { TilesCalculator, MappingArea };
+module.exports = TilesCalculator;

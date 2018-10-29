@@ -105,8 +105,8 @@ class TileLoader {
             }
             
         }catch(e){
-            console.log('initDirectory error: ');
-            console.log(e);
+            this.log(1, 'initDirectory error: ');
+            this.log(1, e);
         }
     }
     
@@ -156,7 +156,7 @@ class TileLoader {
     
         if( this.ready ) {
             if (this.started) {
-                console.log('TilesLoader already started... Exited.');
+                this.log(1, 'TilesLoader already started... Exited.');
             }else{
                 this.log(1, '--- START');
     
@@ -167,11 +167,10 @@ class TileLoader {
                 this.resetTile();
                 this.resetUrl();
     
-                // this.next();
                 this.nextOrStop();
             }
         }else{
-            console.log('Not ready... Exited.');
+            this.log(1, 'Not ready... Exited.');
         }
         
         return this;
@@ -185,13 +184,13 @@ class TileLoader {
         this.completed = true;
         
         if( this.logging.level > 0) {
-            console.log(this.tiles);
+            this.log(this.tiles);
         }
 }
 
     successCallback(response) {
 
-        this.log(2, `!!! SUCCEEDED  tile:${this.index.tile} url:${this.index.url}`);
+        this.log(2, '!!! SUCCEEDED', `tile:${this.index.tile} url:${this.index.url}`);
     
         this.fixTile();
         this.resetUrl();
@@ -201,7 +200,7 @@ class TileLoader {
 
     failureCallback(error) {
     
-        this.log(2, `??? FAILURE ${error}  -  tile:${this.index.tile} url:${this.index.url}`);
+        this.log(2, `??? FAILURE ${error}`, `tile:${this.index.tile} url:${this.index.url}`);
     
         if( this.nextUrl() ){
             this.next();
@@ -220,13 +219,15 @@ class TileLoader {
     
     next() {
 
-        this.log(3, '>>> NEXT');
+        this.log(3, '>>> NEXT', `tile:${this.index.tile} url:${this.index.url}`);
+        this.log(2, '>>> NEXT TILE', this.getTileImageFileName(this.current.tile.x, this.current.tile.y));
+        
 
         const turl = this.getCurrentURL();
         const tparams = this.getCurrentParams();
         const fpath = this.getCurrentTileImagePath();
 
-        this.downloadImage(turl, tparams, fpath, `${this.current.tile.x}-${this.current.tile.y}`)
+        this.downloadImage(turl, tparams, fpath)
         .then(
             (response) => { this.successCallback(response) }
         ).catch(
@@ -244,20 +245,20 @@ class TileLoader {
     resetUrl(){
         this.index.url = this.START_URLS_INDEX;
         this.current.url = this.urls[this.index.url];
-        this.log(3, '=== RESET URL ' + this.index.url);
+        this.log(3, '=== RESET URL ', `tile:${this.index.tile} url:${this.index.url}`);
     }
 
     resetTile(){
         this.index.tile = this.START_TILES_INDEX;
         this.current.tile = this.tiles[this.index.tile];
-        this.log(3, '=== RESET TILE ' + this.index.tile);
+        this.log(3, '=== RESET TILE ', `tile:${this.index.tile}`);
     }
 
     nextUrl(){
         let out = true;
     
         if (++this.index.url >= this.urls.length){
-            this.log(3, '### Stop tryes URLS');
+            this.log(3, '### Stop tryes URLS', `tile:${this.index.tile} url:${this.index.url}`);
             this.index.url = this.START_URLS_INDEX;
             out = false;
         }
@@ -265,7 +266,7 @@ class TileLoader {
         this.current.url = this.getYandexTilesURL( this.urls[this.index.url] );
     
         if(out) {
-            this.log(3, '=== NEXT URL ' + this.index.url);
+            this.log(3, '=== NEXT URL ', `tile:${this.index.tile} url:${this.index.url}`);
         }
     
         return out;
@@ -275,14 +276,14 @@ class TileLoader {
         let out = true;
         
         if ( ++this.index.tile >= this.tiles.length){
-            this.log(2, '### Stop tryes TILES');
+            this.log(2, '### Stop tryes TILES', `tile:${this.index.tile} url:${this.index.url}`);
                 out = false;
             }else{
                 this.current.tile = this.tiles[this.index.tile];
         }
     
         if(out) {
-            this.log(3, '=== NEXT TILE');
+            this.log(3, '=== NEXT TILE', `tile:${this.index.tile} url:${this.index.url}`);
         }
         
         return out;
@@ -322,9 +323,11 @@ class TileLoader {
         return out;
     }
 
-    log(l, m){
+    log(l, m, info){
         if(this.logging.level >= l) {
-            console.log(`${m} - tile:${this.index.tile} url:${this.index.url}`);
+            if(!info)
+                info = '';
+            console.log(`${m} # ${info}`);
         }
     }
 

@@ -6,7 +6,8 @@
 
 const TilesLoader = require('./TilesLoader');
 const { GeoPoint, DecartPoint, PixelPoint } = require('./Mercator');
-const { TilesCalculator, MappingArea } = require('./TilesCalculator');
+const TilesCalculator = require('./TilesCalculator');
+const MappingArea = require('./MappingArea');
 
 const tilesCalculator = new TilesCalculator();
 
