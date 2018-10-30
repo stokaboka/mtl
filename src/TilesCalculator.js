@@ -23,7 +23,7 @@ class TilesCalculator {
         this.equatorHalfLength = this.equatorLength / 2;
     
         // максимальный масштаб
-        this._zoom = 19;
+        this._zoom = 0;
         
         // размер (ширина = высота) тайла
         this._tileSize = 256;
@@ -45,7 +45,7 @@ class TilesCalculator {
         
         this.pipeList = [];
         
-        this.init();
+        // this.init();
     }
     
     get zoom(){
@@ -65,7 +65,16 @@ class TilesCalculator {
         this.init();
     }
     
+    testZoom(){
+        if( this.zoom < 2 || 19 < this.zoom ){
+            throw 'TilesCalculator error: zoom not defined or out of range (2-19)';
+        }
+    }
+    
     init(){
+    
+        this.testZoom();
+        
         // общее количество тайлов при заданном масштабе
         this.numTotalTilesByZoom = Math.pow( 4, this.zoom );
         this.numTilesByZoom = Math.sqrt( this.numTotalTilesByZoom );
@@ -82,6 +91,9 @@ class TilesCalculator {
     }
     
     displayParams(){
+    
+        this.testZoom();
+        
         console.log('--- TilesCalculator parameters ---');
         console.log(`  numTilesByZoom: ${this.numTotalTilesByZoom} / ${this.numTilesByZoom}`);
         console.log(`worldSizeInPixels: ${this.worldSizeInPixels}`);
@@ -92,23 +104,26 @@ class TilesCalculator {
     }
     
     geoToMeter(geoPoint){
-        let m = this.mercator.point2m( geoPoint );
-        return m;
+        this.testZoom();
+        return this.mercator.point2m(geoPoint);
     }
     
     geoToPixels(geoPoint) {
+        this.testZoom();
         let meterPoint = this.geoToMeter(geoPoint);
         return this.meterToPixels(meterPoint);
+        
     }
     
     meterToGeo(meterPoint){
-        let ll = this.mercator.point2ll( meterPoint );
-        return ll;
+        this.testZoom();
+        return this.mercator.point2ll(meterPoint);
+        
     }
     
     meterToPixels(meterPoint){
-        
-        let x =  Math.round(( this.equatorHalfLength + meterPoint.x) * this.pixelsByMeter ),
+        this.testZoom();
+        let x = Math.round(( this.equatorHalfLength + meterPoint.x) * this.pixelsByMeter ),
             y = Math.round(( this.equatorHalfLength - meterPoint.y) * this.pixelsByMeter );
         
         return new PixelPoint( x, y );
@@ -116,7 +131,7 @@ class TilesCalculator {
     }
     
     pixelsToMeter (pixelPoint) {
-        
+        this.testZoom();
         let x = pixelPoint.x / this.pixelsByMeter - this.equatorHalfLength,
             y = this.equatorHalfLength - pixelPoint.y / this.pixelsByMeter;
         
@@ -125,11 +140,14 @@ class TilesCalculator {
     }
     
     pixelsToGeo(pixelPoint) {
+        this.testZoom();
         let meterPoint = this.pixelsToMeter(pixelPoint);
         return this.meterToGeo(meterPoint);
+        
     }
     
     pixelToTile(pixelPoint) {
+        this.testZoom();
         return new PixelPoint(
             Math.floor(pixelPoint.x / this.tileSize),
             Math.floor(pixelPoint.y / this.tileSize),
@@ -142,11 +160,11 @@ class TilesCalculator {
     }
     
     calc(value){
+
         if(this.pipeList){
             let out = value;
-            for (let i=0;  i < this.pipeList.length; i++){
-                let func = this.pipeList[i];
-                out = func(out);
+            for (const func of this.pipeList){
+                out = func.call(this, out);
             }
             this.pipeList = [];
             return out;

@@ -164,10 +164,4 @@ class Mercator {
     }
 }
 
-
-// module.exports.Mercator = Mercator;
-// module.exports.GeoPoint = GeoPoint;
-// module.exports.DecartPoint = DecartPoint;
-// module.exports.PixelPoint = PixelPoint;
-
 module.exports = { Mercator, GeoPoint, DecartPoint, PixelPoint };

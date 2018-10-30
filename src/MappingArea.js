@@ -12,7 +12,7 @@ class MappingArea {
             this.areaSize = pAreaSize;
         }
         
-        this.halfAreaSize = Math.ceil(this._areaSize / 2);
+        this.halfAreaSize = Math.ceil(this.areaSize / 2);
         
         this.tilesCalculator = new TilesCalculator();
         
@@ -22,7 +22,7 @@ class MappingArea {
     
     setAreaSize(value){
         this.areaSize = value;
-        this.halfAreaSize = Math.ceil(this._areaSize / 2);
+        this.halfAreaSize = Math.ceil(this.value / 2);
         return this;
     }
     
@@ -30,7 +30,7 @@ class MappingArea {
         return this.tilesCalculator.zoom;
     }
     setZoom(value){
-        this.tilesCalculator.zoom = this.value;
+        this.tilesCalculator.zoom = value;
         return this;
     }
     
