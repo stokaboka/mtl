@@ -9,7 +9,7 @@
  * @type {Mercator}
  */
 
-const { Mercator, GeoPoint, DecartPoint, PixelPoint } = require('./Mercator');
+const { Mercator, GeoPoint, DecartPoint } = require('./Mercator');
 
 class TilesCalculator {
     constructor(pTileSize){
@@ -110,15 +110,13 @@ class TilesCalculator {
     
     geoToPixels(geoPoint) {
         this.testZoom();
-        let meterPoint = this.geoToMeter(geoPoint);
-        return this.meterToPixels(meterPoint);
-        
+        let point = this.geoToMeter(geoPoint);
+        return this.meterToPixels(point);
     }
     
     meterToGeo(meterPoint){
         this.testZoom();
         return this.mercator.point2ll(meterPoint);
-        
     }
     
     meterToPixels(meterPoint){
@@ -126,7 +124,7 @@ class TilesCalculator {
         let x = Math.round(( this.equatorHalfLength + meterPoint.x) * this.pixelsByMeter ),
             y = Math.round(( this.equatorHalfLength - meterPoint.y) * this.pixelsByMeter );
         
-        return new PixelPoint( x, y );
+        return new DecartPoint( x, y );
         
     }
     
@@ -135,20 +133,20 @@ class TilesCalculator {
         let x = pixelPoint.x / this.pixelsByMeter - this.equatorHalfLength,
             y = this.equatorHalfLength - pixelPoint.y / this.pixelsByMeter;
         
-        return new MeterPoint( x, y );
+        return new DecartPoint( x, y );
         
     }
     
     pixelsToGeo(pixelPoint) {
         this.testZoom();
-        let meterPoint = this.pixelsToMeter(pixelPoint);
-        return this.meterToGeo(meterPoint);
+        let point = this.pixelsToMeter(pixelPoint);
+        return this.meterToGeo(point);
         
     }
     
     pixelToTile(pixelPoint) {
         this.testZoom();
-        return new PixelPoint(
+        return new DecartPoint(
             Math.floor(pixelPoint.x / this.tileSize),
             Math.floor(pixelPoint.y / this.tileSize),
         )

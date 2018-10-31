@@ -10,10 +10,7 @@ const axios = require('axios');
 class TileLoader {
     
     constructor(cfg){
-
-        this.START_URLS_INDEX = 0;
-        this.START_TILES_INDEX = -1;
-    
+        
         this.ready = false;
         this.started = false;
         this.completed = false;
@@ -24,7 +21,6 @@ class TileLoader {
     
         this.map = {
             l: 'map',
-            z: 14,
             lang: 'ru_RU',
             v: '18.10.20-0',
             scale: 1
@@ -35,14 +31,12 @@ class TileLoader {
             reload: false
         };
     
-        this.tiles = [
-            {x: 10005, y: 5008},
-            {x: 10005, y: 5009}
-        ];
+        this.tiles = [];
     
         this.grid = {
-            begin: { x: 10005, y: 5008, vec: '' },
-            end:   { x: 10005, y: 5009, vec: '' }
+            begin: { x: 10005, y: 5008 },
+            size:   { x: 6, y: 6 },
+            z: 14
         };
     
         this.urls = [ 'vec01', 'vec02', 'vec03', 'vec04', 'vec05', 'vec06', 'vec07' ];
@@ -53,8 +47,8 @@ class TileLoader {
         };
     
         this.index = {
-            tile: this.START_TILES_INDEX,
-            url: this.START_URLS_INDEX
+            tile: -1,
+            url: 0
         };
     
         this.loadedTiles = 0;
@@ -122,6 +116,7 @@ class TileLoader {
             }
             
         }catch (e) {
+            this.log(0, e);
             return false;
         }
     }
@@ -243,13 +238,13 @@ class TileLoader {
     }
 
     resetUrl(){
-        this.index.url = this.START_URLS_INDEX;
+        this.index.url = 0;
         this.current.url = this.urls[this.index.url];
         this.log(3, '=== RESET URL ', `tile:${this.index.tile} url:${this.index.url}`);
     }
 
     resetTile(){
-        this.index.tile = this.START_TILES_INDEX;
+        this.index.tile = -1;
         this.current.tile = this.tiles[this.index.tile];
         this.log(3, '=== RESET TILE ', `tile:${this.index.tile}`);
     }
@@ -259,7 +254,7 @@ class TileLoader {
     
         if (++this.index.url >= this.urls.length){
             this.log(3, '### Stop tryes URLS', `tile:${this.index.tile} url:${this.index.url}`);
-            this.index.url = this.START_URLS_INDEX;
+            this.index.url = 0;
             out = false;
         }
     
@@ -295,7 +290,7 @@ class TileLoader {
             v: this.map.v,
             x: this.current.tile.x,
             y: this.current.tile.y,
-            z: this.map.z,
+            z: this.grid.z,
             scale: this.map.scale,
             lang: this.map.lang
         }
@@ -306,7 +301,7 @@ class TileLoader {
     }
     
     getTilesPath(){
-        let out = path.resolve(this.images.path, `${this.map.z}`);
+        let out = path.resolve(this.images.path, `${this.grid.z}`);
         return out;
     }
     
@@ -337,9 +332,6 @@ class TileLoader {
 
     initTilesCollection(grid){
         
-        let size = grid.size.x * grid.size.y;
-        let idx = 0;
-        // this.tiles = new Array(size);
         this.tiles = [];
     
         for(let _x = 0; _x < grid.size.x; _x++){
@@ -349,17 +341,13 @@ class TileLoader {
                 if(this.checkTileImage(tileInfo.x, tileInfo.y)){
                     // tile image exist
                     if(this.images.reload){
-                        // this.tiles[idx++] = tileInfo;
                         this.tiles.push(tileInfo);
                     }
                 }else {
-                    // this.tiles[idx++] = tileInfo;
                     this.tiles.push(tileInfo);
                 }
-            
             }
         }
-    
     }
     
     async downloadImage (url, params, file) {

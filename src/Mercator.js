@@ -37,6 +37,7 @@ function lon2y(lon) { return lon; }
  */
 
 class GeoPoint {
+    
     constructor(lon, lat){
         this.lon = lon;
         this.lat = lat;
@@ -48,20 +49,12 @@ class GeoPoint {
 }
 
 class DecartPoint {
+    
     constructor(x, y){
         this.x = x;
         this.y = y;
     }
-    toString(){
-        return `x:${this.x} y:${this.y}`;
-    }
-}
-
-class PixelPoint {
-    constructor(x, y){
-        this.x = x;
-        this.y = y;
-    }
+    
     toString(){
         return `x:${this.x} y:${this.y}`;
     }
@@ -164,4 +157,4 @@ class Mercator {
     }
 }
 
-module.exports = { Mercator, GeoPoint, DecartPoint, PixelPoint };
+module.exports = { Mercator, GeoPoint, DecartPoint };

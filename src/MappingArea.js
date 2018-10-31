@@ -92,8 +92,15 @@ class MappingArea {
                 return null;
         }
         return {
-            begin: { x: tilePoint.x - this.halfAreaSize, y: tilePoint.y - this.halfAreaSize },
-            size:  { x: this.areaSize, y: this.areaSize }
+            begin: {
+                x: tilePoint.x - this.halfAreaSize,
+                y: tilePoint.y - this.halfAreaSize
+            },
+            size:  {
+                x: this.areaSize,
+                y: this.areaSize
+            },
+            z: this.getZoom()
         }
     }
 }
